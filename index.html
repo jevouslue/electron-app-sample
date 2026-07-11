@@ -3,30 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Electron製 CSVツールサンプル</title>
-    <style>
-        body { font-family: sans-serif; padding: 20px; }
-        .section { margin-bottom: 20px; }
-        .input-group { display: flex; gap: 8px; align-items: center; max-width: 100%; }
-        input[type="text"] { flex: 1; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 8px 16px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #f0f0f0; }
-        button:hover { background: #e0e0e0; }
-
-        /* 実行ボタンのスタイル */
-        #btn-start { background: #007bff; color: white; border: none; font-weight: bold; width: 100%; padding: 10px; }
-        #btn-start:hover { background: #0056b3; }
-        #btn-start:disabled { background: #ccc; cursor: not-allowed; }
-        progress { width: 100%; height: 20px; }
-
-        /* 排他表示用：初期状態はボタンエリアのみ表示 */
-        #action-area { display: block; }
-        #progress-area { display: none; }
-        #complete-area { display: none; }
-
-        /* 完了メッセージとリンクを横並びにするスタイル */
-        .flex-container { display: flex; align-items: center; gap: 15px; }
-        #complete-msg { color: green; font-weight: bold; margin: 0; }
-        #csv-link { color: #0056b3; text-decoration: underline; cursor: pointer; font-weight: bold; }
-    </style>
 </head>
 <body>
 
@@ -52,103 +28,11 @@
 
 <!-- 【状態3】完了後：メッセージとリンクのみ（横並び） -->
 <div class="section" id="complete-area">
-<!--     <div class="flex-container"> -->
-            <p id="complete-msg">処理が完了しました！</p>
-            <span id="csv-link">📄 CSVを開く</span>
-<!--         </div> -->
+    <!--     <div class="flex-container"> -->
+    <p id="complete-msg">処理が完了しました！</p>
+    <span id="csv-link">📄 CSVを開く</span>
+    <!--         </div> -->
 </div>
-
-    <script>
-        const { ipcRenderer } = require('electron');
-
-        let generatedCsvPath = '';
-
-        const inputPath = document.getElementById('input-path');
-        const btnSelect = document.getElementById('btn-select');
-        const btnStart = document.getElementById('btn-start');
-
-        const actionArea = document.getElementById('action-area');
-        const progressArea = document.getElementById('progress-area');
-        const completeArea = document.getElementById('complete-area');
-
-        const progressBar = document.getElementById('progress-bar');
-        const progressText = document.getElementById('progress-text');
-        const csvLink = document.getElementById('csv-link');
-
-        // UIを最初の状態（非活性ボタンのみ）に戻すリセット関数
-        function showActionState() {
-            actionArea.style.display = 'block';
-            progressArea.style.display = 'none';
-            completeArea.style.display = 'none';
-
-            progressBar.value = 0;
-            progressText.textContent = '0%';
-            generatedCsvPath = '';
-
-            btnSelect.disabled = false;
-            inputPath.disabled = false;
-        }
-
-        // 入力値の状態に応じて実行ボタンの活性/非活性を切り替える
-        function toggleStartButton() {
-            btnStart.disabled = inputPath.value.trim() === '';
-        }
-
-        // テキストボックス入力時
-        inputPath.addEventListener('input', () => {
-            showActionState(); // 途中でパスを書き換えたらボタン状態に戻す
-            toggleStartButton();
-        });
-
-        // フォルダ参照ボタンクリック時
-        btnSelect.addEventListener('click', async () => {
-            showActionState(); // 新しく選択を始める際もボタン状態に戻す
-
-            const selectedPaths = await ipcRenderer.invoke('select-folder');
-            if (selectedPaths && selectedPaths.length > 0) {
-                inputPath.value = selectedPaths;
-            }
-            toggleStartButton();
-        });
-
-        // 実行ボタンクリック時（ボタンを隠してプログレスバーを出す）
-        btnStart.addEventListener('click', () => {
-            const targetFolder = inputPath.value.trim();
-            if (!targetFolder) return;
-
-            btnSelect.disabled = true;
-            inputPath.disabled = true;
-
-            // 画面切り替え：プログレスバーのみ表示
-            actionArea.style.display = 'none';
-            completeArea.style.display = 'none';
-            progressArea.style.display = 'block';
-
-            ipcRenderer.send('start-process', targetFolder);
-        });
-
-        // 進捗の更新を受信
-        ipcRenderer.on('process-progress', (event, value) => {
-            progressBar.value = value;
-            progressText.textContent = `${value}%`;
-        });
-
-        // 完了を受信（プログレスバーを隠してメッセージ＆リンクを出す）
-        ipcRenderer.on('process-complete', (event, csvPath) => {
-            generatedCsvPath = csvPath;
-
-            // 画面切り替え：完了表示のみ
-            actionArea.style.display = 'none';
-            progressArea.style.display = 'none';
-            completeArea.style.display = 'block';
-        });
-
-        // リンククリック時にエクスプローラーを開く
-        csvLink.addEventListener('click', () => {
-            if (generatedCsvPath) {
-                ipcRenderer.send('open-explorer', generatedCsvPath);
-            }
-        });
-    </script>
-    </body>
-    </html>
+<script type="module" src="/src/renderer.ts"></script>
+</body>
+</html>

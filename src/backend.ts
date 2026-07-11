@@ -1,22 +1,9 @@
-const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
-const path = require('path');
-const fs = require('fs');
-
-function createWindow() {
-    const win = new BrowserWindow({
-        width: 500,
-        height: 220,
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false // シンプルにするため一時的に無効化
-        }
-    });
-    win.loadFile('index.html');
-}
-
-app.whenReady().then(createWindow);
 
 // フォルダ選択ダイアログを開く
+import {dialog, ipcMain, shell} from "electron";
+import path from "path";
+import fs from "fs";
+
 ipcMain.handle('select-folder', async () => {
     const result = await dialog.showOpenDialog({
         properties: ['openDirectory']
@@ -48,8 +35,4 @@ ipcMain.on('start-process', async (event, folderPath) => {
 // エクスプローラーでファイルを表示
 ipcMain.on('open-explorer', (event, filePath) => {
     shell.showItemInFolder(filePath);
-});
-
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
 });
