@@ -40,6 +40,7 @@ const completeArea = document.getElementById('complete-area') as HTMLDivElement
 
 const progressBar = document.getElementById('progress-bar') as HTMLProgressElement
 const progressText = document.getElementById('progress-text') as HTMLSpanElement
+const progressingFile = document.getElementById('progressing-file') as HTMLSpanElement
 const csvLink = document.getElementById('csv-link') as HTMLAnchorElement
 const csvFolderLink = document.getElementById('csv-folder-link') as HTMLAnchorElement
 
@@ -124,7 +125,8 @@ btnStart.addEventListener('click', () => {
 window.electronAPI.onProgress((doneNum, totalNum, filePath) => {
     const value = Math.floor((doneNum / totalNum) * 100)
     progressBar.value = value
-    progressText.textContent = `${filePath}\n${doneNum} / ${totalNum} (${value}%)`
+    progressText.textContent = `${doneNum} / ${totalNum} (${value}%)`
+    progressingFile.textContent = filePath
 })
 
 /**

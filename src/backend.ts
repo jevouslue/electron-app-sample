@@ -3,7 +3,7 @@ import {dialog, ipcMain, shell} from 'electron'
 import path from 'path'
 import fs from 'fs'
 
-let selectedFilePath: string
+let selectedFolderPath: string
 let files: string[]
 ipcMain.handle('select-folder', async () => {
     const result = await dialog.showOpenDialog({
@@ -13,12 +13,12 @@ ipcMain.handle('select-folder', async () => {
         return null
     }
 
-    selectedFilePath = result.filePaths[0]
-    return selectedFilePath
+    selectedFolderPath = result.filePaths[0]
+    return selectedFolderPath
 })
 ipcMain.handle('get-target-files', async () => {
-    if(isExistDirectory(selectedFilePath)) {
-        files = fs.globSync(`${selectedFilePath}/**/*.sql`, {
+    if(isExistDirectory(selectedFolderPath)) {
+        files = fs.globSync(`${selectedFolderPath}/**/*.sql`, {
             exclude: ['node_modules/**', 'dist/**'] // 除外したいパターン
         })
         return files
@@ -36,13 +36,13 @@ ipcMain.on('start-process', async (event, folderPath) => {
     fs.writeFileSync(csvPath, `${bom}絶対パス,相対パス,サイズ
 `, {encoding: 'utf-8'})
     files.forEach((filePath, index) => {
-        event.reply('process-progress', index, files.length, filePath) // 進捗を画面に送信
+        const relativeFilePath = filePath.replace(selectedFolderPath, '')
+        const fileName = path.basename(filePath)
+        event.reply('process-progress', index, files.length, fileName) // 進捗を画面に送信
 
         const fileSize = fs.statSync(filePath).size
-        const relativeFilePath = filePath.replace(selectedFilePath, '')
         fs.writeFileSync(csvPath, `${filePath},${relativeFilePath},${fileSize}\n`, {flag: 'a', encoding: 'utf-8'})
     })
-
     // 完了通知とCSVパスを送信
     event.reply('process-complete', csvPath)
 })

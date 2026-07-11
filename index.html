@@ -22,8 +22,12 @@
 
 <!-- 【状態2】実行中：プログレスバーのみ -->
 <div class="section" id="progress-area">
-    <label style="display: block; margin-bottom: 5px;">進捗状況: <span id="progress-text">0%</span></label>
-    <progress id="progress-bar" value="0" max="100"></progress>
+    <label style="display: block; margin-bottom: 5px;">進捗状況: <span id="progressing-file">処理中のファイル名</span></label>
+
+    <div class="flex-container">
+        <progress id="progress-bar" value="0" max="100"></progress>
+        <span id="progress-text" class="flex-shrink-0">0%</span>
+    </div>
 </div>
 
 <!-- 【状態3】完了後：メッセージとリンクのみ -->

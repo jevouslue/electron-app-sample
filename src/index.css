@@ -82,6 +82,10 @@ progress {
   gap: 15px;
 }
 
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+
 #complete-msg {
   color: green;
   font-weight: bold;
