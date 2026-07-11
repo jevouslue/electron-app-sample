@@ -88,7 +88,7 @@ progress {
   margin: 0;
 }
 
-#csv-link {
+#csv-link, #csv-folder-link {
   color: #0056b3;
   text-decoration: underline;
   cursor: pointer;

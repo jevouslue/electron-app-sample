@@ -22,101 +22,141 @@
  *    webPreferences: {
  *      nodeIntegration: true
  *    }
- *  });
+ *  })
  * ```
  */
-import './index.css';
+import './index.css'
 
-
-let generatedCsvPath = '';
+let generatedCsvPath = ''
 
 // DOM要素の取得（型アサーションを使って具象型を指定）
-const inputPath = document.getElementById('input-path') as HTMLInputElement;
-const btnSelect = document.getElementById('btn-select') as HTMLButtonElement;
-const btnStart = document.getElementById('btn-start') as HTMLButtonElement;
+const inputPath = document.getElementById('input-path') as HTMLInputElement
+const btnSelect = document.getElementById('btn-select') as HTMLButtonElement
+const btnStart = document.getElementById('btn-start') as HTMLButtonElement
 
-const actionArea = document.getElementById('action-area') as HTMLDivElement;
-const progressArea = document.getElementById('progress-area') as HTMLDivElement;
-const completeArea = document.getElementById('complete-area') as HTMLDivElement;
+const actionArea = document.getElementById('action-area') as HTMLDivElement
+const progressArea = document.getElementById('progress-area') as HTMLDivElement
+const completeArea = document.getElementById('complete-area') as HTMLDivElement
 
-const progressBar = document.getElementById('progress-bar') as HTMLProgressElement;
-const progressText = document.getElementById('progress-text') as HTMLSpanElement;
-const csvLink = document.getElementById('csv-link') as HTMLAnchorElement;
+const progressBar = document.getElementById('progress-bar') as HTMLProgressElement
+const progressText = document.getElementById('progress-text') as HTMLSpanElement
+const csvLink = document.getElementById('csv-link') as HTMLAnchorElement
+const csvFolderLink = document.getElementById('csv-folder-link') as HTMLAnchorElement
 
-// UIを最初の状態に戻すリセット関数
-function showActionState(): void {
-    actionArea.style.display = 'block';
-    progressArea.style.display = 'none';
-    completeArea.style.display = 'none';
+/**
+ * 各種UIの表示状態初期化
+ */
+function resetUI(): void {
+    actionArea.style.display = 'block'
+    progressArea.style.display = 'none'
+    completeArea.style.display = 'none'
 
-    progressBar.value = 0;
-    progressText.textContent = '0%';
-    generatedCsvPath = '';
+    progressBar.value = 0
+    progressText.textContent = '0%'
+    generatedCsvPath = ''
 
-    btnSelect.disabled = false;
-    inputPath.disabled = false;
+    btnSelect.disabled = false
+    inputPath.disabled = false
 }
 
-// 入力値の状態に応じて実行ボタンの活性/非活性を切り替える
-function toggleStartButton(): void {
-    btnStart.disabled = inputPath.value.trim() === '';
-}
+/**
+ * 入力値の状態に応じて実行ボタンの活性/非活性を切り替え
+ */
+async function toggleStartButton(): Promise<void> {
+    btnStart.disabled = true
+    btnStart.textContent = 'パスを指定してください'
 
-// テキストボックス入力時
-inputPath.addEventListener('input', () => {
-    showActionState();
-    toggleStartButton();
-});
-
-// フォルダ参照ボタンクリック時
-btnSelect.addEventListener('click', async () => {
-    showActionState();
-
-    // 型定義のおかげで window.electronAPI が安全に補完されます
-    const selectedPaths = await window.electronAPI.selectFolder();
-    if (selectedPaths && selectedPaths.length > 0) {
-        // 複数選択でないなら最初のパスを代入（または join）
-        inputPath.value = selectedPaths[0];
+    const dirPath = inputPath.value.trim()
+    if (dirPath !== '') {
+        const targetFiles = await window.electronAPI.getTargetFiles()
+        if (targetFiles.length === 0) {
+            btnStart.textContent = `対象のファイルが見つかりません`
+            return
+        }
+        btnStart.disabled = false
+        btnStart.textContent = `${targetFiles.length}ファイルを処理`
     }
-    toggleStartButton();
-});
+}
 
-// 実行ボタンクリック時
+/**
+ * テキストボックス入力時のイベントリスナー
+ */
+inputPath.addEventListener('input', async () => {
+    resetUI()
+    await toggleStartButton()
+})
+
+/**
+ * フォルダ参照ボタンクリック時のイベントリスナー
+ * ディレクトリ選択ダイアログを開く
+ */
+btnSelect.addEventListener('click', async () => {
+    resetUI()
+
+    const selectedPaths = await window.electronAPI.selectFolder()
+    if (selectedPaths) {
+        inputPath.value = selectedPaths
+    }
+    await toggleStartButton()
+})
+
+/**
+ * 実行ボタンクリック時のイベントリスナー
+ */
 btnStart.addEventListener('click', () => {
-    const targetFolder = inputPath.value.trim();
-    if (!targetFolder) return;
+    const targetFolder = inputPath.value.trim()
+    if (!targetFolder) return
 
-    btnSelect.disabled = true;
-    inputPath.disabled = true;
+    resetUI()
+    btnSelect.disabled = true
+    inputPath.disabled = true
 
-    actionArea.style.display = 'none';
-    completeArea.style.display = 'none';
-    progressArea.style.display = 'block';
+    actionArea.style.display = 'none'
+    progressArea.style.display = 'block'
 
-    window.electronAPI.startProcess(targetFolder);
-});
+    window.electronAPI.startProcess(targetFolder)
+})
 
-// 進捗の更新を受信 (value は自動で number 型になります)
-window.electronAPI.onProgress((value) => {
-    progressBar.value = value;
-    progressText.textContent = `${value}%`;
-});
+/**
+ * 進捗の更新時のイベントリスナー
+ * プログレスバーの更新
+ */
+window.electronAPI.onProgress((doneNum, totalNum, filePath) => {
+    const value = Math.floor((doneNum / totalNum) * 100)
+    progressBar.value = value
+    progressText.textContent = `${filePath}\n${doneNum} / ${totalNum} (${value}%)`
+})
 
-// 完了を受信 (csvPath は自動で string 型になります)
+/**
+ * 完了時のイベントリスナー
+ */
 window.electronAPI.onComplete((csvPath) => {
-    generatedCsvPath = csvPath;
+    generatedCsvPath = csvPath
 
-    btnSelect.disabled = false;
-    inputPath.disabled = false;
+    btnSelect.disabled = false
+    inputPath.disabled = false
 
-    actionArea.style.display = 'none';
-    progressArea.style.display = 'none';
-    completeArea.style.display = 'block';
-});
+    actionArea.style.display = 'none'
+    progressArea.style.display = 'none'
+    completeArea.style.display = 'block'
+})
 
-// リンククリック時にエクスプローラーを開く
+/**
+ * リンククリック時のイベントリスナー
+ * エクスプローラーを開く
+ */
 csvLink.addEventListener('click', () => {
     if (generatedCsvPath) {
-        window.electronAPI.openExplorer(generatedCsvPath);
+        window.electronAPI.openFile(generatedCsvPath)
     }
-});
+})
+
+/**
+ * フォルダリンククリック時のイベントリスナー
+ * エクスプローラーを開く
+ */
+csvFolderLink.addEventListener('click', () => {
+    if (generatedCsvPath) {
+        window.electronAPI.openInExplorer(generatedCsvPath)
+    }
+})

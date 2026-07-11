@@ -8,7 +8,7 @@
 
 <!-- フォルダ入力エリア（常時表示） -->
 <div class="section">
-    <label style="display: block; margin-bottom: 5px; font-weight: bold;">対象フォルダ</label>
+    <label style="display: block; margin-bottom: 5px; font-weight: bold;">SQLフォルダ</label>
     <div class="input-group">
         <input type="text" id="input-path" placeholder="フォルダのパスを入力してください">
         <button id="btn-select" title="フォルダを選択">📁 参照</button>
@@ -17,7 +17,7 @@
 
 <!-- 【状態1】初期表示 / フォルダ変更時：実行ボタンのみ -->
 <div class="section" id="action-area">
-    <button id="btn-start" disabled>処理実行</button>
+    <button id="btn-start" disabled>パスを指定してください</button>
 </div>
 
 <!-- 【状態2】実行中：プログレスバーのみ -->
@@ -26,11 +26,12 @@
     <progress id="progress-bar" value="0" max="100"></progress>
 </div>
 
-<!-- 【状態3】完了後：メッセージとリンクのみ（横並び） -->
+<!-- 【状態3】完了後：メッセージとリンクのみ -->
 <div class="section" id="complete-area">
     <!--     <div class="flex-container"> -->
     <p id="complete-msg">処理が完了しました！</p>
     <span id="csv-link">📄 CSVを開く</span>
+    <span id="csv-folder-link">📁 フォルダを開く</span>
     <!--         </div> -->
 </div>
 <script type="module" src="/src/renderer.ts"></script>
