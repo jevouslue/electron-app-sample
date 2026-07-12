@@ -162,3 +162,12 @@ csvFolderLink.addEventListener('click', () => {
         window.electronAPI.openInExplorer(generatedCsvPath)
     }
 })
+
+/**
+ * エラー時のイベントリスナー
+ * ディレクトリ再選択可能に
+ */
+window.electronAPI.onError(() => {
+    btnSelect.disabled = false
+    inputPath.disabled = false
+})

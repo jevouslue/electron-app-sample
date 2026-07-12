@@ -12,7 +12,8 @@ export interface IElectronAPI {
     onProgress: (callback: (doneNum: number, totalNum: number, filePath: string) => void) => () => void
     onComplete: (callback: (csvPath: string) => void) => () => void
     openFile: (filePath: string) => void
-    openInExplorer: (filePath: string) => void
+    openInExplorer: (filePath: string) => void,
+    onError: (error: any) => void,
 }
 
 const electronAPI: IElectronAPI = {
@@ -43,6 +44,13 @@ const electronAPI: IElectronAPI = {
 
     // エクスプローラーで開く
     openInExplorer: (filePath: string) => ipcRenderer.send('open-in-explorer', filePath),
+
+    // エラーを受信
+    onError: (callback: (error: any) => void) => {
+        const subscription = (_event: any, error: any) => callback(error)
+        ipcRenderer.on('error', subscription)
+        return () => ipcRenderer.removeListener('error', subscription)
+    },
 }
 
 // 画面側にAPIを露出させる
